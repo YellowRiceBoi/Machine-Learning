@@ -1,0 +1,2 @@
+# Nvidia Stock Predictor
+This little Project is a little Test in how I can extract Data from a CSV file and use the data to train a model and predict some data. The model is quiet rough at this time, but I will optimize the model in the future. 
