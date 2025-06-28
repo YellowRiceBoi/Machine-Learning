@@ -1,5 +1,9 @@
+# Training a model that can predict the next day's closing price of Nvidia stock
+# using data from a csv file containing stock information till the 10th June 2025
+
 import pandas as pd
-from sklearn.tree import DecisionTreeRegressor
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 
@@ -7,7 +11,7 @@ def nvidia_prediction():
     # Load dataset from .csv file
     stock_info = pd.read_csv("Nvidia_stock_data.csv")
 
-    # Test if dataset is properly red
+    # Test if dataset is properly loaded
     if stock_info.empty:
         raise ValueError("The dataset is empty")
     else:
@@ -17,36 +21,21 @@ def nvidia_prediction():
     features = stock_info[["Open", "High", "Low", "Volume"]]
     target = stock_info["Close"]
 
+    # Use data of last 2 years for training
+    stock_info["Date"] = pd.to_datetime(stock_info["Date"])
+    stock_info = stock_info[stock_info["Date"] >= (pd.to_datetime("today") - pd.DateOffset(years=2))]
+
     # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.5, random_state=42)
 
     # Model training
-    model = DecisionTreeRegressor()
+    model = RandomForestRegressor()
     model.fit(X_train, y_train)
 
-    # Predict the stock price for the next day
-    next_day_features = pd.DataFrame({
-        "Open": [142],
-        "High": [150],
-        "Low": [136],
-        "Volume": [1000000]
-    })
-
-    # Predict the stock price for the next month based on the data
-    next_month_features = pd.DataFrame({
-        "Open": [145],
-        "High": [155],
-        "Low": [140],
-        "Volume": [1200000]
-    })
-
-    # Make prediction for the next day
-    next_day_prediction = model.predict(next_day_features)
-    print(f"Predicted stock price for next day: {next_day_prediction[0]:.2f}")
-    
-    # Make prediction for the next month
-    next_month_prediction = model.predict(next_month_features)
-    print(f"Predicted stock price for next month: {next_month_prediction[0]:.2f}")
+    # Predict closing price for next day
+    last_row = stock_info.iloc[-1][["Open", "High", "Low", "Volume"]].to_numpy().reshape(1, -1)
+    next_day_prediction = model.predict(last_row)
+    print(f"Predicted closing price for the next day: {next_day_prediction[0]:.2f}")
     
     # Model evaluation
     y_pred = model.predict(X_test)
